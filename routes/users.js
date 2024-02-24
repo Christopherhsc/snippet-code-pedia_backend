@@ -36,6 +36,7 @@ router.get("/", (req, res) => {
   res.send("users List");
 });
 
+
 router.get("/new", (req, res) => {
   res.send("User new form");
 });
