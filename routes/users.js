@@ -3,7 +3,7 @@ const User = require("../models/user");
 const router = express.Router();
 
 router.post("/new", (req, res) => {
-  User.findOne({ googleId: req.body.googleId })
+  User.findOne({ id: req.body.id })
     .then((existingUser) => {
       if (existingUser) {
         // Update existing user's information
@@ -18,7 +18,6 @@ router.post("/new", (req, res) => {
       } else {
         // Create a new user
         const newUser = new User({
-          googleId: req.body.googleId,
           email: req.body.email,
           username: req.body.username,
           imageUrl: req.body.imageUrl,
