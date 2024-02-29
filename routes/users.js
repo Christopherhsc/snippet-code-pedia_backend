@@ -2,8 +2,19 @@ const express = require("express");
 const User = require("../models/user");
 const router = express.Router();
 
+router.get("/:email", (req, res) => {
+  User.findOne({ email: req.params.email })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    })
+    .catch((err) => res.status(500).json("Error: " + err));
+});
+
 router.post("/new", (req, res) => {
-  User.findOne({ _id: req.body._id })
+  User.findOne({ email: req.body.email })
     .then((existingUser) => {
       if (existingUser) {
         // Update existing user's information
@@ -31,13 +42,6 @@ router.post("/new", (req, res) => {
     .catch((err) => res.status(500).json("Error: " + err));
 });
 
-router.get("/", (req, res) => {
-  res.send("users List");
-});
 
-
-router.get("/new", (req, res) => {
-  res.send("User new form");
-});
 
 module.exports = router;
