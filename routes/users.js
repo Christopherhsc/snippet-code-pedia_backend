@@ -1,6 +1,9 @@
 const express = require("express");
 const User = require("../models/user");
+const bcrypt = require("bcrypt");
 const router = express.Router();
+
+const saltRounds = 10;
 
 router.get("/:email", (req, res) => {
   User.findOne({ email: req.params.email })
@@ -14,34 +17,51 @@ router.get("/:email", (req, res) => {
 });
 
 router.post("/new", (req, res) => {
-  User.findOne({ email: req.body.email })
+  const { email, username, imageUrl, password } = req.body;
+
+  User.findOne({ email: email })
     .then((existingUser) => {
-      if (existingUser) {
-        // Update existing user's information
-        existingUser.email = req.body.email;
-        existingUser.username = req.body.username;
-        existingUser.imageUrl = req.body.imageUrl;
-        // Save the updated user information
-        existingUser
-          .save()
-          .then((updatedUser) => res.json(updatedUser))
-          .catch((err) => res.status(400).json("Error: " + err));
-      } else {
-        // Create a new user
-        const newUser = new User({
-          email: req.body.email,
-          username: req.body.username,
-          imageUrl: req.body.imageUrl,
+      // Function to save or update user
+      const saveOrUpdateUser = (hashedPassword) => {
+        if (existingUser) {
+          // Update existing user's information
+          existingUser.email = email;
+          existingUser.username = username;
+          existingUser.imageUrl = imageUrl;
+          if (hashedPassword) existingUser.password = hashedPassword;
+
+          existingUser
+            .save()
+            .then((updatedUser) => res.json(updatedUser))
+            .catch((err) => res.status(400).json("Error: " + err));
+        } else {
+          // Create a new user
+          const newUser = new User({
+            email: email,
+            username: username,
+            ...(imageUrl && { imageUrl: imageUrl }),
+            ...(hashedPassword && { password: hashedPassword }), // Add password only if it exists
+          });
+
+          newUser
+            .save()
+            .then((user) => res.json(user))
+            .catch((err) => res.status(400).json("Error: " + err));
+        }
+      };
+
+      if (password) {
+        bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
+          if (err) {
+            return res.status(500).json("Error hashing password: " + err);
+          }
+          saveOrUpdateUser(hashedPassword);
         });
-        newUser
-          .save()
-          .then((user) => res.json(user))
-          .catch((err) => res.status(400).json("Error: " + err));
+      } else {
+        saveOrUpdateUser(null);
       }
     })
     .catch((err) => res.status(500).json("Error: " + err));
 });
-
-
 
 module.exports = router;
