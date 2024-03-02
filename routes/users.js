@@ -5,46 +5,28 @@ const router = express.Router();
 
 const saltRounds = 10;
 
-router.get("/:email", (req, res) => {
-  User.findOne({ email: req.params.email })
-    .then((user) => {
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      res.json(user);
-    })
-    .catch((err) => res.status(500).json("Error: " + err));
-});
-
 router.post("/new", (req, res) => {
-  console.log("Kommer vi her?")
   const { email, username, imageUrl, password, registrationMethod } = req.body;
 
-  console.log("Received request data:", req.body); // Log the incoming request data
-
-  User.findOne({ email: email, registrationMethod: registrationMethod })
+  User.findOne({ email: email })
     .then((existingUser) => {
-      console.log("Existing user found:", existingUser); // Log if an existing user is found
+      if (existingUser && registrationMethod === "SCP") {
+        // If the user already exists and the registration method is SCP, return an error
+        return res.status(400).json({ message: "Email is already in use" });
+      }
 
       const saveOrUpdateUser = (hashedPassword) => {
-        if (existingUser) {
-          console.log("Updating existing user:", existingUser); // Log the existing user's current data
-
+        // If the user exists and the registration method is GOOGLE, update the user
+        if (existingUser && registrationMethod === "GOOGLE") {
           existingUser.username = username;
           existingUser.imageUrl = imageUrl;
           if (hashedPassword) existingUser.password = hashedPassword;
-
           existingUser
             .save()
-            .then((updatedUser) => {
-              console.log("Updated user:", updatedUser); // Log the updated user's data
-              res.json(updatedUser);
-            })
-            .catch((err) => {
-              console.error("Error updating user:", err); // Log any errors during user update
-              res.status(400).json("Error: " + err);
-            });
+            .then((updatedUser) => res.json(updatedUser))
+            .catch((err) => res.status(400).json("Error: " + err));
         } else {
+          // If the user doesn't exist, create a new user
           const newUser = new User({
             email,
             username,
@@ -53,27 +35,18 @@ router.post("/new", (req, res) => {
             ...(hashedPassword && { password: hashedPassword }),
           });
 
-          console.log("Creating new user:", newUser); // Log the new user's data to be saved
-
           newUser
             .save()
-            .then((user) => {
-              console.log("Created new user:", user); // Log the newly created user's data
-              res.json(user);
-            })
-            .catch((err) => {
-              console.error("Error creating user:", err); // Log any errors during user creation
-              res.status(400).json("Error: " + err);
-            });
+            .then((user) => res.json(user))
+            .catch((err) => res.status(400).json("Error: " + err));
         }
       };
 
+      // If a password is provided, hash it before saving/updating the user
       if (password) {
         bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
-          if (err) {
-            console.error("Error hashing password:", err); // Log any errors during password hashing
+          if (err)
             return res.status(500).json("Error hashing password: " + err);
-          }
           saveOrUpdateUser(hashedPassword);
         });
       } else {
@@ -81,9 +54,37 @@ router.post("/new", (req, res) => {
       }
     })
     .catch((err) => {
-      console.error("Error finding user:", err); // Log any errors during user lookup
       res.status(500).json("Error: " + err);
     });
+
+  router.post("/login", (req, res) => {
+    const { email, password } = req.body;
+
+    User.findOne({ email: email })
+      .then((user) => {
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Verify the password
+        bcrypt.compare(password, user.password, (err, isMatch) => {
+          if (err) {
+            return res
+              .status(500)
+              .json({ message: "Error during authentication" });
+          }
+
+          if (!isMatch) {
+            return res.status(401).json({ message: "Invalid credentials" });
+          }
+
+          // Password matches, proceed with login
+          // Implement token generation or session creation as needed
+          res.json({ message: "Login successful", user: user });
+        });
+      })
+      .catch((err) => res.status(500).json("Error: " + err));
+  });
 });
 
 module.exports = router;
