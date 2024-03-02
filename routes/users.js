@@ -17,42 +17,61 @@ router.get("/:email", (req, res) => {
 });
 
 router.post("/new", (req, res) => {
-  const { email, username, imageUrl, password } = req.body;
+  console.log("Kommer vi her?")
+  const { email, username, imageUrl, password, registrationMethod } = req.body;
 
-  User.findOne({ email: email })
+  console.log("Received request data:", req.body); // Log the incoming request data
+
+  User.findOne({ email: email, registrationMethod: registrationMethod })
     .then((existingUser) => {
-      // Function to save or update user
+      console.log("Existing user found:", existingUser); // Log if an existing user is found
+
       const saveOrUpdateUser = (hashedPassword) => {
         if (existingUser) {
-          // Update existing user's information
-          existingUser.email = email;
+          console.log("Updating existing user:", existingUser); // Log the existing user's current data
+
           existingUser.username = username;
           existingUser.imageUrl = imageUrl;
           if (hashedPassword) existingUser.password = hashedPassword;
 
           existingUser
             .save()
-            .then((updatedUser) => res.json(updatedUser))
-            .catch((err) => res.status(400).json("Error: " + err));
+            .then((updatedUser) => {
+              console.log("Updated user:", updatedUser); // Log the updated user's data
+              res.json(updatedUser);
+            })
+            .catch((err) => {
+              console.error("Error updating user:", err); // Log any errors during user update
+              res.status(400).json("Error: " + err);
+            });
         } else {
-          // Create a new user
           const newUser = new User({
-            email: email,
-            username: username,
-            ...(imageUrl && { imageUrl: imageUrl }),
-            ...(hashedPassword && { password: hashedPassword }), // Add password only if it exists
+            email,
+            username,
+            imageUrl,
+            registrationMethod,
+            ...(hashedPassword && { password: hashedPassword }),
           });
+
+          console.log("Creating new user:", newUser); // Log the new user's data to be saved
 
           newUser
             .save()
-            .then((user) => res.json(user))
-            .catch((err) => res.status(400).json("Error: " + err));
+            .then((user) => {
+              console.log("Created new user:", user); // Log the newly created user's data
+              res.json(user);
+            })
+            .catch((err) => {
+              console.error("Error creating user:", err); // Log any errors during user creation
+              res.status(400).json("Error: " + err);
+            });
         }
       };
 
       if (password) {
         bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
           if (err) {
+            console.error("Error hashing password:", err); // Log any errors during password hashing
             return res.status(500).json("Error hashing password: " + err);
           }
           saveOrUpdateUser(hashedPassword);
@@ -61,7 +80,10 @@ router.post("/new", (req, res) => {
         saveOrUpdateUser(null);
       }
     })
-    .catch((err) => res.status(500).json("Error: " + err));
+    .catch((err) => {
+      console.error("Error finding user:", err); // Log any errors during user lookup
+      res.status(500).json("Error: " + err);
+    });
 });
 
 module.exports = router;

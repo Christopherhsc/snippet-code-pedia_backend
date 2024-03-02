@@ -17,6 +17,10 @@ const UserSchema = new Schema({
   imageUrl: {
     type: String,
   },
+  registrationMethod: {
+    type: String,
+    required: [true, "RegistrationMethod is required!"],
+  },
 });
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
