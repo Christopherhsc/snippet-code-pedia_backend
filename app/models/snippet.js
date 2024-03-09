@@ -6,11 +6,8 @@ const snippetSchema = new mongoose.Schema({
   snippetTemplate: String,
   snippetStyle: String,
   tags: String,
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  
+  username: String,
+  email: String,
 });
 
 module.exports = mongoose.model("Snippet", snippetSchema);

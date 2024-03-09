@@ -17,9 +17,9 @@ app.get("/", (req, res) => {
   res.send();
 });
 
-const userRouter = require("./routes/users");
+const userRouter = require("./app/routes/users");
 app.use("/users", userRouter);
-const snippetRouter = require('./routes/snippets')
+const snippetRouter = require('./app/routes/snippets')
 app.use("/snippets", snippetRouter)
 
 const port = process.env.PORT || 3000;
