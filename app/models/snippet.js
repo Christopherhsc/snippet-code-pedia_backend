@@ -8,6 +8,7 @@ const snippetSchema = new mongoose.Schema({
   tags: String,
   username: String,
   email: String,
+  userId: String,
 });
 
 module.exports = mongoose.model("Snippet", snippetSchema);

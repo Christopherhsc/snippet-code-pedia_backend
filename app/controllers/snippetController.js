@@ -1,6 +1,17 @@
 const Snippet = require("../models/snippet");
 
 // GET
+exports.getUserSnippets = (req, res) => {
+  const { userId } = req.params;
+  console.log("Fetching snippets for userID:", userId); // Log the userId
+  Snippet.find({ userId })
+    .then(snippets => {
+      console.log(snippets); // Log the snippets found
+      res.json(snippets);
+    })
+    .catch(err => res.status(400).json("Error: " + err));
+};
+
 exports.getAllSnippets = (req, res) => {
   Snippet.find()
     .then((snippets) => res.json(snippets))
@@ -22,8 +33,8 @@ exports.createSnippet = (req, res) => {
     snippetStyle,
     tags,
     userId,
-    username, // Include username
-    email, // Include email
+    username,
+    email, 
   } = req.body;
 
   const newSnippet = new Snippet({

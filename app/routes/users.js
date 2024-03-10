@@ -56,39 +56,42 @@ router.post("/new", (req, res) => {
     .catch((err) => {
       res.status(500).json("Error: " + err);
     });
+});
 
-    router.post("/login", (req, res) => {
-      const { email, password } = req.body;
-    
-      User.findOne({ email: email })
-        .then((user) => {
-          if (!user) {
-            return res.status(404).json({ message: "User not found" });
-          }
-    
-          // Verify the password
-          bcrypt.compare(password, user.password, (err, isMatch) => {
-            if (err) {
-              return res.status(500).json({ message: "Error during authentication" });
-            }
-    
-            if (!isMatch) {
-              return res.status(401).json({ message: "Invalid credentials" });
-            }
-    
-            // Password matches, proceed with login
-            // Convert the Mongoose document to a plain JavaScript object
-            const userObject = user.toObject();
-    
-            // Remove password property from the object before sending it in the response
-            delete userObject.password;
-    
-            res.json(userObject);
-          });
-        })
-        .catch((err) => res.status(500).json("Error: " + err));
+router.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email: email })
+    .then((user) => {
+      if (!user) {
+        console.log("User not found for:", email);
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      bcrypt.compare(password, user.password, (err, isMatch) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ message: "Error during authentication" });
+        }
+
+        if (!isMatch) {
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        // Convert the Mongoose document to a plain JavaScript object
+        const userObject = user.toObject();
+
+        // Remove password property from the object before sending it in the response
+        delete userObject.password;
+
+        res.json(userObject);
+      });
+    })
+    .catch((err) => {
+      console.log("Error during login process:", err); // Log any other error
+      res.status(500).json("Error: " + err);
     });
-    
 });
 
 module.exports = router;
