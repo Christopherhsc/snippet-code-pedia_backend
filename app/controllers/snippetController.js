@@ -5,11 +5,11 @@ exports.getUserSnippets = (req, res) => {
   const { userId } = req.params;
   console.log("Fetching snippets for userID:", userId); // Log the userId
   Snippet.find({ userId })
-    .then(snippets => {
+    .then((snippets) => {
       console.log(snippets); // Log the snippets found
       res.json(snippets);
     })
-    .catch(err => res.status(400).json("Error: " + err));
+    .catch((err) => res.status(400).json("Error: " + err));
 };
 
 exports.getAllSnippets = (req, res) => {
@@ -18,8 +18,8 @@ exports.getAllSnippets = (req, res) => {
     .catch((err) => res.status(400).json("Error: " + err));
 };
 
-exports.getNineSnippets = (req, res) => {
-  Snippet.aggregate([{ $sample: { size: 9 } }])
+exports.getRandomSnippets = (req, res) => {
+  Snippet.aggregate([{ $sample: { size: 12 } }])
     .then((snippets) => res.json(snippets))
     .catch((err) => res.status(400).json("Error: " + err));
 };
@@ -34,7 +34,7 @@ exports.createSnippet = (req, res) => {
     tags,
     userId,
     username,
-    email, 
+    email,
   } = req.body;
 
   const newSnippet = new Snippet({
@@ -44,8 +44,8 @@ exports.createSnippet = (req, res) => {
     snippetStyle,
     tags,
     userId,
-    username, 
-    email, 
+    username,
+    email,
   });
 
   newSnippet
@@ -53,3 +53,34 @@ exports.createSnippet = (req, res) => {
     .then(() => res.json("Snippet added!"))
     .catch((err) => res.status(400).json("Error: " + err));
 };
+
+// DELETE
+exports.deleteSnippet = (req, res) => {
+  const userIdFromRequest = req.headers['user-id'];
+
+  if (!userIdFromRequest) {
+    return res.status(401).json("Unauthorized: No user information found.");
+  }
+
+  const { snippetId } = req.params;
+
+  // Find the snippet by ID
+  Snippet.findById(snippetId)
+    .then((snippet) => {
+      if (!snippet) {
+        return res.status(404).json("Error: Snippet not found.");
+      }
+
+      if (snippet.userId.toString() !== userIdFromRequest.toString()) {
+        return res.status(401).json("Error: Unauthorized to delete this snippet.");
+      }
+
+      // Use findByIdAndDelete to remove the snippet
+      Snippet.findByIdAndDelete(snippetId)
+        .then(() => res.json("Snippet deleted."))
+        .catch((err) => res.status(400).json("Error: " + err));
+    })
+    .catch((err) => res.status(400).json("Error: " + err));
+};
+
+
