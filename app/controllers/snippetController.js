@@ -24,6 +24,19 @@ exports.getRandomSnippets = (req, res) => {
     .catch((err) => res.status(400).json("Error: " + err));
 };
 
+exports.getSnippetById = (req, res) => {
+  const { snippetId } = req.params;
+
+  Snippet.findById(snippetId)
+    .then((snippet) => {
+      if (!snippet) {
+        return res.status(404).json("Error: Snippet not found.");
+      }
+      res.json(snippet);
+    })
+    .catch((err) => res.status(400).json("Error: " + err));
+};
+
 // POST
 exports.createSnippet = (req, res) => {
   const {

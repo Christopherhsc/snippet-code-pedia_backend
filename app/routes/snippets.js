@@ -6,9 +6,10 @@ const snippetController = require("../controllers/snippetController");
 router.get("/", snippetController.getAllSnippets);
 router.get("/random", snippetController.getRandomSnippets);
 router.get("/:userId", snippetController.getUserSnippets);
+router.get("/detail/:snippetId", snippetController.getSnippetById);
 
 router.post("/", snippetController.createSnippet);
 
-router.delete("/:snippetId", snippetController.deleteSnippet)
+router.delete("/:snippetId", snippetController.deleteSnippet);
 
 module.exports = router;

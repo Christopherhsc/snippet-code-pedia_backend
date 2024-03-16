@@ -8,7 +8,7 @@ const bodyParser = require("body-parser");
 app.use(cors());
 
 // Increase the limit for JSON payloads
-app.use(bodyParser.json({ limit: "10mb" })); // You can adjust the limit as needed
+app.use(bodyParser.json({ limit: "10mb" }))
 
 mongoose.connect(process.env.MONGODB_URI, {});
 mongoose.connection.on("connected", () => {
