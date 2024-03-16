@@ -28,6 +28,7 @@ exports.getRandomSnippets = (req, res) => {
 exports.createSnippet = (req, res) => {
   const {
     title,
+    picture,
     description,
     snippetTemplate,
     snippetStyle,
@@ -39,6 +40,7 @@ exports.createSnippet = (req, res) => {
 
   const newSnippet = new Snippet({
     title,
+    picture,
     description,
     snippetTemplate,
     snippetStyle,
@@ -56,7 +58,7 @@ exports.createSnippet = (req, res) => {
 
 // DELETE
 exports.deleteSnippet = (req, res) => {
-  const userIdFromRequest = req.headers['user-id'];
+  const userIdFromRequest = req.headers["user-id"];
 
   if (!userIdFromRequest) {
     return res.status(401).json("Unauthorized: No user information found.");
@@ -72,7 +74,9 @@ exports.deleteSnippet = (req, res) => {
       }
 
       if (snippet.userId.toString() !== userIdFromRequest.toString()) {
-        return res.status(401).json("Error: Unauthorized to delete this snippet.");
+        return res
+          .status(401)
+          .json("Error: Unauthorized to delete this snippet.");
       }
 
       // Use findByIdAndDelete to remove the snippet
@@ -82,5 +86,3 @@ exports.deleteSnippet = (req, res) => {
     })
     .catch((err) => res.status(400).json("Error: " + err));
 };
-
-
